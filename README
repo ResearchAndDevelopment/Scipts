@@ -1,0 +1,32 @@
+Author: Alex Jafari
+Email: alexjafari2005@gmail.com
+Description: This script automatically creates a recommended workspace for Software development project. It mainly is based for Beaglebone Black but can be easily modified for other platforms.
+
+Files:
+create_workspace.sh
+Create directory structor
+workspace:
+-------- bootldr:
+	-------- u-boot	
+-------- build-tools
+-------- debug
+-------- doc
+-------- images
+-------- kernel
+	-------- bb-kernel
+-------- project
+-------- rootfs
+	-------- Ubuntu
+	-------- Debian
+-------- sysapps
+-------- tmp
+-------- tools
+	--------- gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux
+When you run the script, it will ask you for workspace name. The default value is workspace. 
+The script will create the above directory structor and download the following software in it.
+1- Linaro in tools
+2- u-boot in bootldr
+3- bb-kernel in kernel
+4- It will also set the CC in system.sh in bb-kernel for cross compiling
+5- (Optional) Build the kernel for the first time with Linaro
+6- Ubuntu in rootfs
