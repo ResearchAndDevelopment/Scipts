@@ -103,7 +103,7 @@ verbose 5 comment out all the CCs
 sed -i 's/^CC=/#CC=/' system.sh
 verbose 5 add CC path to the kernel
 LINE_NUM=$(grep -n "#CC=" system.sh | cut -f 1 -d : | tail -1)
-sed -i ''$LINE_NUM's#$#\nCC=t '$CC'#' system.sh
+sed -i ''$LINE_NUM's#$#\nCC='$CC'#' system.sh
 verbose 5 Downloading rootfs
 cd /$WDIR/$WORKSPACE/$ROOTFS
 wget -c $ROOTFS_URL
