@@ -12,7 +12,7 @@ fi
 #DEBUG_LEVEL does what it sounds like. 0 is disabled and 5 most verbose
 init_variables()
 {
-	VERBOSE_VAL=5
+	VERBOSE_VAL=3
 	WORKSPACE=workspace
 	BOOTLDR=bootldr
 	BOOTLDR_VER=v2015.10
@@ -60,7 +60,7 @@ prompt()
 create_workspace()
 {
 	WORKSPACE=$(prompt $WORKSPACE)
-	verbose 5 workspace is $WORKSPACE
+	verbose 3 Created workspace is $WORKSPACE
 	mkdir -p $WORKSPACE
 	cd $WORKSPACE
 	mkdir -p $BOOTLDR $DEBUG $IMAGES $PROJECT $ROOTFS $TMP \
@@ -73,20 +73,19 @@ Install_cc()
 #	verbose 5 Install 32 bit libraries for $CC
 #	dpkg --add-architecture i386
 #	apt-get install libc6:i386 libstdc++6:i386 libncurses5:i386 zlib1g:i386
-	#Download cross compiler tool
-	verbose 5 downloading cross compiler tools 
+	verbose 3 Downloading cross compiler tools 
 	cd $WDIR/$WORKSPACE/$TOOLS
         if [ -e `echo $CC_URL |rev | cut -d / -f 1| rev` ]; then
-                verbose 5 $CC is already downloaded
+                verbose 2 $CC is already downloaded
         else
                 wget -c $CC_URL
-		verbose 5 extracting $CC tools
+		verbose 3 extracting $CC tools
 		tar xf $(echo $CC_URL | rev | cut -d / -f 1 | rev) 
 	fi
-	verbose 5 Verifying $CC installation
+	verbose 1 Verifying $CC installation
 	CC_FULL_NAME=$WDIR/$WORKSPACE/$TOOLS/`ls -l| grep ^d | awk '{print $9}'`/bin/arm-linux-gnueabihf-
 	if [[ $(${CC_FULL_NAME}gcc --version| grep -w  ^arm-linux-gnueabihf-gcc) ]];then
-		verbose 5 CC installation succeeded 
+		verbose 2 CC installation succeeded 
 	else 
 		verbose 0 CC installation failed
 		verbose 0 "Try installing 32 bit libraties for ubuntu by uncommenting first 3 lines of Install_cc() or extract CC again."
@@ -99,42 +98,38 @@ git_download()
 	local VER=${1}_VER
 	local URL=${1}_URL
         cd $WDIR/$WORKSPACE/${!1}
-	verbose 3 Directory ${!1} : $WDIR/$WORKSPACE/${!1}
+	verbose 2 ${!1} directory : $WDIR/$WORKSPACE/${!1}
 	local DIRECTORY=$(echo ${!URL} |rev | cut -d / -f 1| rev)
         if [ ! -e $DIRECTORY ];then 
-                verbose 5 cloning $1 from "${!URL}"
+                verbose 3 cloning $1 from "${!URL}"
                 git clone --recursive ${!URL}
         fi
         cd $DIRECTORY
-        verbose 5 checking out ${!VER} to branch $BRANCH
+        verbose 3 checking out ${!VER} to branch $BRANCH
         git rev-parse --verify $BRANCH &>/dev/null|| git checkout ${!VER} -b $BRANCH
 }
 download_u-boot()
 {
 	git_download BOOTLDR
 	if [ ! -e `echo $UBOOT_PATCH_URL |rev | cut -d / -f 1| rev` ];then
-		verbose 5 Downloading patches from $UBOOT_PATCH_URL
+		verbose 3 Downloading and applying patches from $UBOOT_PATCH_URL
 		wget -c $UBOOT_PATCH_URL 
-	        verbose 5 applying patches to u-boot
 	        patch -p1 < 0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch
 	fi
 }
 build_u-boot()
 {
-        verbose 5 configuring and building u-boot
-#        make ARCH=arm CROSS_COMPILE=${CC_FULL_NAME} distclean
+        verbose 3 configuring and building u-boot
+        make ARCH=arm CROSS_COMPILE=${CC_FULL_NAME} distclean
         make ARCH=arm CROSS_COMPILE=${CC_FULL_NAME} am335x_evm_defconfig
         make ARCH=arm CROSS_COMPILE=${CC_FULL_NAME}
 }
 download_kernel()
 {
 	git_download KERNEL
-	verbose 5 configuring system variables
+	verbose 3 configuring system variables
 	cp system.sh.sample system.sh
-	verbose 5 setting up $CC_FULL_NAME path
-	verbose 5 comment out all the CCs
 	sed -i 's/^CC=/#CC=/' system.sh
-	verbose 5 add CC path to the kernel
 	LINE_NUM=$(grep -n "#CC=" system.sh | cut -f 1 -d : | tail -1)
 	if [ "x$LINE_NUM" != "x" ]; then 
 		sed -i ''$LINE_NUM's#$#\nCC='$CC_FULL_NAME'#' system.sh
@@ -146,9 +141,9 @@ download_rootfs()
 {
 	cd /$WDIR/$WORKSPACE/$ROOTFS
 	if [ ! -e `echo $ROOTFS_URL |rev | cut -d / -f 1| rev` ]; then
-		verbose 5 Downloading rootfs
+		verbose 3 Downloading rootfs
 		wget -c $ROOTFS_URL
-		verbose 5 extracting rootfs
+		verbose 3 extracting rootfs
 		tar xf $(echo $ROOTFS_URL | rev | cut -d / -f 1 | rev) 
 	fi
 }
@@ -156,6 +151,6 @@ init_variables
 create_workspace
 Install_cc
 download_u-boot
-build_u-boot
+#build_u-boot
 download_kernel
 download_rootfs
